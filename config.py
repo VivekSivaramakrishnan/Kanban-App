@@ -12,3 +12,4 @@ SECRET_KEY = 'ssuxAAY7iT'
 
 # Connect to the database
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'database.db')
+SQLALCHEMY_TRACK_MODIFICATIONS = True
