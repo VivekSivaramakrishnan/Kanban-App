@@ -1,0 +1,2 @@
+user -> n lists: id, name, description
+list -> n tasks: title, content, deadline, complete?, created, completed

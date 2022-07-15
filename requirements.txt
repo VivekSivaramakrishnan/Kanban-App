@@ -1,4 +1,5 @@
 Fabric
+bcrypt
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
