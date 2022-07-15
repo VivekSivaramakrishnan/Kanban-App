@@ -1,0 +1,15 @@
+{% extends 'layouts/form.html' %}
+{% block title %}Add list for {{ current_user.username }}{% endblock %}
+{% block content %}
+{% if form.errors %}
+    {{ form.errors }}
+{% endif %}
+  <form method="post" class="form">
+    {{ form.csrf_token }}
+    <h3 class="form-heading">Add new list for {{ current_user.username }} <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {{ form.name(class_ = 'form-control first-input', placeholder = form.name.label.text, required = true, autofocus = true) }}
+    {{ form.description(class_ = 'form-control last-input', placeholder = form.description.label.text) }}
+
+    <input type="submit" value="Submit" class="btn btn-primary btn-lg btn-block">
+  </form>
+{% endblock %}
