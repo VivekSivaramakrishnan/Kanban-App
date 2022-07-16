@@ -10,6 +10,7 @@ from logging import Formatter, FileHandler
 from forms import *
 import os
 from models import *
+from datetime import datetime
 from settings import app, db
 
 db.init_app(app)
@@ -20,9 +21,6 @@ login_manager.init_app(app)
 
 app.app_context().push()
 
-#----------------------------------------------------------------------------#
-# Controllers.
-#----------------------------------------------------------------------------#
 
 @login_manager.user_loader
 def user_loader(user_id):
@@ -31,13 +29,28 @@ def user_loader(user_id):
 
 @app.route('/')
 def home():
-    return render_template('pages/home.html')
+    return render_template('pages/home.html', today=datetime.today())
 
 
 @app.route('/about')
 def about():
     return render_template('pages/placeholder.about.html', current_user=current_user)
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegisterForm(request.form)
+
+    if form.validate_on_submit():
+        user = User(username=form.username.data,
+                    password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect(url_for("login"))
+    else:
+        flash('Username already exists! Be more creative :)')
+
+    return render_template('forms/register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,33 +84,21 @@ def add_list():
 
     if form.validate_on_submit():
 
-        list = List(name=form.name.data, description=form.description.data, username=current_user.username)
+        list = List(name=form.name.data,
+                    description=form.description.data,
+                    username=current_user.username)
         db.session.add(list)
         db.session.commit()
 
         return redirect(url_for('home'))
 
-    return render_template('forms/list/add.html', form=form)
-
-@app.route('/delete/list/<list_id>')
-@login_required
-def delete_list(list_id):
-    list = db.session.query(List).get(list_id)
-    db.session.delete(list)
-
-    list_tasks = db.session.query(Task).filter_by(list_id=list_id).all()
-    for task in list_tasks:
-        db.session.delete(tasks)
-
-    db.session.commit()
-
-    return redirect(url_for('home'))
+    return render_template('forms/list.html', form=form, list=[])
 
 @app.route('/update/list/<list_id>', methods=['GET', 'POST'])
 @login_required
 def update_list(list_id):
     list = db.session.query(List).get(list_id)
-    form = ListForm(request.form)
+    form = ListForm(request.form, name=list.name, description=list.description)
 
     if form.validate_on_submit():
 
@@ -107,8 +108,87 @@ def update_list(list_id):
 
         return redirect(url_for('home'))
 
-    return render_template('forms/list/update.html', form=form, list=list)
+    return render_template('forms/list.html', form=form, list=list)
 
+    return render_template('forms/list/add.html', form=form)
+
+@app.route('/delete/list/<list_id>')
+@login_required
+def delete_list(list_id):
+    list = db.session.query(List).get(list_id)
+    db.session.delete(list)
+    db.session.commit()
+
+    return redirect(url_for('home'))
+
+@app.route('/add/task/<list_id>', methods=['GET', 'POST'])
+@login_required
+def add_task(list_id):
+
+    default_list = db.session.query(List).get(list_id)
+    list_names = [(list.id, list.name) for list in db.session.query(List).all()]
+    # todate = datetime.now().strftime('%d/%m/%y')
+
+    form = TaskForm(request.form,
+                    list=default_list.id)
+    form.list.choices = list_names
+
+    if form.validate_on_submit():
+
+        task = Task(title = form.title.data,
+                    content = form.content.data,
+                    deadline = form.deadline.data,
+                    status = form.status.data,
+                    created = datetime.now(),
+                    updated = datetime.now(),
+                    list_id = form.list.data)
+        db.session.add(task)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+
+    return render_template('forms/task.html', form=form, list=list)
+
+
+@app.route('/update/task/<list_id>/<task_title>', methods=['GET', 'POST'])
+@login_required
+def update_task(list_id, task_title):
+
+    task = db.session.query(Task).get((task_title, list_id))
+    list_names = [(list.id, list.name) for list in db.session.query(List).all()]
+    print(task.status)
+    form = TaskForm(request.form,
+                    list = task.list_id,
+                    title = task.title,
+                    content = task.content,
+                    deadline = task.deadline)
+
+    form.list.choices = list_names
+
+    if form.validate_on_submit():
+
+        task.title = form.title.data
+        task.content = form.content.data
+        task.deadline = form.deadline.data
+        task.status = form.status.data
+        task.created = datetime.now()
+        task.updated = datetime.now()
+        task.list_id = form.list.data
+
+        db.session.commit()
+
+        return redirect(url_for('home'))
+
+    return render_template('forms/task.html', form=form, list=list)
+
+@app.route('/delete/task/<list_id>/<task_title>')
+@login_required
+def delete_task(list_id, task_title):
+    task = db.session.query(Task).get((task_title, list_id))
+    db.session.delete(task)
+    db.session.commit()
+
+    return redirect(url_for('home'))
 
 @app.route('/logout', methods=['GET'])
 @login_required
@@ -121,25 +201,8 @@ def logout():
     return redirect(url_for("home"))
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = RegisterForm(request.form)
-
-    if form.validate_on_submit():
-            user = User(username=form.username.data, password=form.password.data)
-            db.session.add(user)
-            db.session.commit()
-
-            return redirect(url_for("login"))
-        else:
-            flash('Username already exists! Be more creative :)')
-
-    return render_template('forms/register.html', form=form)
-
-
 @app.errorhandler(500)
 def internal_error(error):
-    #db_session.rollback()
     return render_template('errors/500.html'), 500
 
 
