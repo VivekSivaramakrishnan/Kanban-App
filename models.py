@@ -49,7 +49,7 @@ class List(Base):
     description = db.Column(db.String, nullable=False)
     username = db.Column(db.String, db.ForeignKey('Users.username'), nullable=False)
 
-    tasks = db.relationship('Task')
+    tasks = db.relationship('Task', cascade="all,delete")
 
 class Task(Base):
     __tablename__ = 'Tasks'
@@ -57,7 +57,7 @@ class Task(Base):
     title = db.Column(db.String, nullable=False, primary_key=True)
     content = db.Column(db.String)
     deadline = db.Column(db.Date, nullable=False)
-    status = db.Column(db.Boolean, default=False)
+    status = db.Column(db.Boolean)
 
     created = db.Column(db.DateTime)
     updated = db.Column(db.DateTime)
