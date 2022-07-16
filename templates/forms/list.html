@@ -6,7 +6,11 @@
 {% endif %}
   <form method="post" class="form">
     {{ form.csrf_token }}
-    <h3 class="form-heading">Add new list for {{ current_user.username }} <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {% if list %}
+    <h3 class="form-heading">Editing <b>{{ list.name }}</b> <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {% else %}
+    <h3 class="form-heading">Add new list for <b>{{ current_user.username }}</b> <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {% endif %}
     {{ form.name(class_ = 'form-control first-input', placeholder = form.name.label.text, required = true, autofocus = true) }}
     {{ form.description(class_ = 'form-control last-input', placeholder = form.description.label.text) }}
 
