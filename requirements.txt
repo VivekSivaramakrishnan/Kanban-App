@@ -3,7 +3,7 @@ bcrypt
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
-WTForms==2.3.3
+WTForms
 coverage
 # ecdsa
 # paramiko
