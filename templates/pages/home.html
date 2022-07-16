@@ -3,16 +3,74 @@
 {% block content %}
 
 {% if current_user.is_authenticated %}
-<div class="page-header">
-  <h1>Welcome, {{ current_user.username }}.</h1>
-</div>
-<h4>
-Lists: <br>
-{% for list in current_user.lists %}
-{{ list.id, list.name, list.description, list.username }} | <a href="/update/list/{{ list.id }}">Update</a> | <a href="/delete/list/{{ list.id }}">Delete</a><br>
-{% endfor %}
-</h4>
-<p><a href="{{url_for('add_list')}}">Add</a> a new list.</p>
+<br><br>
+    <div class="page-header">
+      <h1>Welcome, {{ current_user.username }}.</h1><br>
+    </div>
+    {% if current_user.lists %}
+        <div class="card-deck">
+        {% for list in current_user.lists %}
+            <div class="card bg-light mb-3", style="max-width: 20rem;">
+                <div class="card-body">
+                  <h5 class="card-title", align='center'>
+                      <div class="dropdown">
+                          <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              {{ list.name }}
+                          </button>
+                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                              <a class="dropdown-item" href="/update/list/{{ list.id }}">Update</a>
+                              <a class="dropdown-item" href="/delete/list/{{ list.id }}">Delete</a>
+                          </div>
+                      </div>
+                  </h5>
+                  <div class="card-text">
+                      {% if list.tasks %}
+                          {% for task in list.tasks %}
+                              <div class="card text-white bg-{{ 'success' if task.status else 'warning' }} mb-3" style="max-width: 18rem;">
+                                  <div class="card-header">
+                                      <div class="dropdown">
+                                          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                              {{ task.title }}
+                                          </button>
+                                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                              <a class="dropdown-item" href="/update/task/{{ list.id }}/{{ task.title }}">Update</a>
+                                              <a class="dropdown-item" href="/delete/task/{{ list.id }}/{{ task.title }}">Delete</a>
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <div class="card-body">
+                                    <h5 class="card-title">Status: {{ task.status }}</h5>
+                                    <p class="card-text">Content: {{ task.content }}</p>
+                                  </div>
+                              </div>
+                          {% endfor %}
+                      {% endif %}
+                  </div>
+                  <div class="card-text", align='center'>
+                      <button type="button" class="btn btn-primary btn-circle btn-md" onclick="location.href='/add/task/{{ list.id }}'"><h3>+</h3></button>
+                  </div>
+                </div>
+                <p class="card-text" data-toggle="tooltip" data-placement="bottom" title="List Description" align=center><small class="text-muted">{{ list.description }}</small></p>
+            </div>
+        {% endfor %}
+        {% if current_user.lists|length < 5 %}
+            <div class="card border-light mb-3" style="max-width: 20rem;">
+                <div class="card-body">
+                    <br><br><br>
+                  <button type="button" class="btn btn-primary btn-circle btn-xl" onclick="location.href='{{ url_for('add_list') }}'">Add List</button>
+                </div>
+            </div>
+        {% endif %}
+        </div>
+
+    {% else %}
+        <p>You have no lists.</p>
+        <div class="card border-light mb-3" style="max-width: 20rem;">
+            <div class="card-body">
+              <button type="button" class="btn btn-primary btn-circle btn-xl" onclick="location.href='{{ url_for('add_list') }}'">Add List</button>
+            </div>
+        </div>
+    {% endif %}
 {% else %}
 <div class="page-header">
   <h1>Welcome to the Kanban App</h1>
