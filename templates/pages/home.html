@@ -17,10 +17,29 @@
                           <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                               {{ list.name }}
                           </button>
-                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                              <a class="dropdown-item" href="/update/list/{{ list.id }}">Update</a>
-                              <a class="dropdown-item" href="/delete/list/{{ list.id }}">Delete</a>
-                          </div>
+                          <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenuButton">
+                              <li><a class="dropdown-item" href="/update/list/{{ list.id }}">Update</a></li>
+                              <li class="dropdown-submenu">
+                                  <a class="dropdown-item" tabindex="-1" href="#">
+                                    Delete List
+                                  </a>
+                                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}" data-message="Are you sure you want to delete {{ list.name }} and all the tasks associated with it?" href="#">Delete all tasks</a></li>
+                                    <li>
+                                    </li>
+                                    <li class="dropdown-submenu">
+                                      <a class="dropdown-item" tabindex="-1" href="#">
+                                          Move tasks to
+                                      </a>
+                                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        {% for xlist in current_user.lists %}{% if xlist.id != list.id %}
+                                        <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}/{{ xlist.id }}" data-message="Are you sure you want to delete {{ list.name }} and re-allocate all tasks to {{ xlist.name }}?" href="#">{{ xlist.name }}</a></li>
+                                        {% endif %}{% endfor %}
+                                      </ul>
+                                  </ul>
+                              </li>
+
+                          </ul>
                       </div>
                   </h5>
                   <div class="card-text">
@@ -77,5 +96,38 @@
 </div>
 <h4>Please <a href="{{url_for('login')}}">login</a> to get started.</h4>
 {% endif %}
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="exampleModalLongTitle">Delete Confirmation</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    Are you sure you want to delete?
+  </div>
+  <div class="modal-footer">
+    <button type="button" onclick="#" class="confirmButton btn btn-primary">Yes</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+  </div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript">
+    $('#deleteModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var action = button.data('action')
+      var message = button.data('message')
+
+      var modal = $(this)
+      modal.find('.modal-body').text(message)
+      modal.find('.confirmButton').attr('onclick', "location.href ='"+action+"'")
+    })
+</script>
 
 {% endblock %}

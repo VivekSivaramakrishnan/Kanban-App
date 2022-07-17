@@ -121,6 +121,22 @@ def delete_list(list_id):
 
     return redirect(url_for('home'))
 
+@app.route('/delete/list/<list_id>/<xlist_id>')
+@login_required
+def move_tasks(list_id, xlist_id):
+
+    list = db.session.query(List).get(list_id)
+    list_tasks = list.tasks
+    db.session.delete(list)
+
+    for task in list_tasks:
+        task.list_id = xlist_id
+        db.session.add(task)
+        
+    db.session.commit()
+
+    return redirect(url_for('home'))
+
 @app.route('/add/task/<list_id>', methods=['GET', 'POST'])
 @login_required
 def add_task(list_id):
