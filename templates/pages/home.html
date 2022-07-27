@@ -1,100 +1,106 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Home{% endblock %}
+{% block color %}{{ color_code }}{% endblock %}
 {% block content %}
 
 {% if current_user.is_authenticated %}
 <br><br>
     <div class="page-header">
-      <h1>Welcome, {{ current_user.username }}.</h1><br>
+      <h1 style="font-family: 'Poppins', sans-serif;">Welcome, <b>{{ current_user.username }}</b>.</h1><br>
     </div>
-    {% if current_user.lists %}
-        <div class="card-deck">
-        {% for list in current_user.lists %}
-            <div class="card bg-light mb-3", style="max-width: 20rem;">
-                <div class="card-body">
-                  <h5 class="card-title", align='center'>
-                      <div class="dropdown">
-                          <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              {{ list.name }}
-                          </button>
-                          <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenuButton">
-                              <li><a class="dropdown-item" href="/update/list/{{ list.id }}">Update</a></li>
-                              <li class="dropdown-submenu">
+    <div class="card-deck">
+    {% for list in current_user.lists %}
+        <div class="card mb-3 bg-custom-{{ current_user.lists.index(list) + 1 }}", style="max-width: 20rem;">
+            <div class="card-body">
+              <div class="card-title" align='center'>
+                  <div class="dropdown">
+                      <button class="btn btn-danger btn-circle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      </button>
+                      <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenuButton">
+                          <li><a class="dropdown-item" href="/update/list/{{ list.id }}"><span class="material-icons text-secondary" text-sm>update</span>Update</a></li>
+                          <li class="dropdown-submenu">
+                              <a class="dropdown-item" tabindex="-1">
+                                <span class="material-icons text-secondary text-sm">delete</span> Delete
+                              </a>
+                              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}" data-message="Are you sure you want to delete {{ list.name }} and all the tasks associated with it?" href="#">Delete all tasks</a></li>
+                                <li>
+                                </li>
+                                <li class="dropdown-submenu">
                                   <a class="dropdown-item" tabindex="-1" href="#">
-                                    Delete List
+                                      Move tasks to
                                   </a>
                                   <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}" data-message="Are you sure you want to delete {{ list.name }} and all the tasks associated with it?" href="#">Delete all tasks</a></li>
-                                    <li>
-                                    </li>
-                                    <li class="dropdown-submenu">
-                                      <a class="dropdown-item" tabindex="-1" href="#">
-                                          Move tasks to
-                                      </a>
-                                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                        {% for xlist in current_user.lists %}{% if xlist.id != list.id %}
-                                        <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}/{{ xlist.id }}" data-message="Are you sure you want to delete {{ list.name }} and re-allocate all tasks to {{ xlist.name }}?" href="#">{{ xlist.name }}</a></li>
-                                        {% endif %}{% endfor %}
-                                      </ul>
+                                    {% for xlist in current_user.lists %}{% if xlist.id != list.id %}
+                                    <li><a class="dropdown-item" data-toggle="modal" data-target="#deleteModal" data-action="/delete/list/{{ list.id }}/{{ xlist.id }}" data-message="Are you sure you want to delete {{ list.name }} and re-allocate all tasks to {{ xlist.name }}?" href="#">{{ xlist.name }}</a></li>
+                                    {% endif %}{% endfor %}
                                   </ul>
-                              </li>
+                              </ul>
+                          </li>
 
-                          </ul>
-                      </div>
-                  </h5>
-                  <div class="card-text">
-                      {% if list.tasks %}
-                          {% for task in list.tasks %}
-                              <div class="card text-white bg-{{ 'success' if task.status else 'warning' }} mb-3" style="max-width: 18rem;">
-                                  <div class="card-header">
-                                      <div class="dropdown">
-                                          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                              {{ task.title }}
-                                          </button>
-                                          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                              <a class="dropdown-item" href="/update/task/{{ list.id }}/{{ task.title }}">Update</a>
-                                              <a class="dropdown-item" href="/delete/task/{{ list.id }}/{{ task.title }}">Delete</a>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="card-body">
-                                    <h5 class="card-title">Status: {{ task.status }}</h5>
-                                    <p class="card-text">Content: {{ task.content }}</p>
-                                  </div>
+                      </ul>
+                  </div>
+                  <br>
+                  <h3 class="card-title" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ list.name }}</h3>
+                  <br>
+              </div>
+              <div class="card-text">
+                  {% if list.tasks %}
+                      {% for task in list.tasks %}
+                          {% if task.status %}
+                              {% set cscheme = 'success' %}
+                              {% else %}
+                              {% if task.deadline >= today %}
+                              {% set cscheme = 'warning' %}
+                              {% else %}
+                              {% set cscheme = 'danger ' %}
+                              {% endif %}
+                          {% endif %}
+                          <div class="card text-white border-{{ cscheme }} mb-3" style="max-width: 20rem;">
+                              <div class="card-header">
+                                  <a href="/update/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-primary">update</span></a>
+                                  <a href="/delete/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-danger" style="float:right;">delete</span></a>
                               </div>
-                          {% endfor %}
-                      {% endif %}
-                  </div>
-                  <div class="card-text", align='center'>
-                      <button type="button" class="btn btn-primary btn-circle btn-md" onclick="location.href='/add/task/{{ list.id }}'"><h3>+</h3></button>
-                  </div>
-                </div>
-                <p class="card-text" data-toggle="tooltip" data-placement="bottom" title="List Description" align=center><small class="text-muted">{{ list.description }}</small></p>
+                              <div class="card-body">
+                                <h5 class="card-title text-{{ cscheme }}" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ task.title }}</h5>
+                                <p class="card-title text-dark" style="font-size:15px"><b style="font-family: 'Poppins', sans-serif; font-weight:600;">Deadline: </b>{{ task.deadline.strftime('%d-%m-%Y') }}</p>
+                                {% if task.status %}
+                                <p class="card-title text-{{ cscheme }}" style="font-size:15px"><b style="font-family: 'Poppins', sans-serif; font-weight:600;">Completed on: </b>{{ task.updated.strftime('%d-%m-%Y') }}</p>
+                                {% endif %}
+                                <p class="card-text text-dark">{{ task.content }}</p>
+                              </div>
+                          </div>
+                      {% endfor %}
+                  {% endif %}
+              </div>
+              <div class="card-text", align='center'>
+                  <button type="button" class="btn btn-primary btn-circle btn-md" onclick="location.href='/add/task/{{ list.id }}'"><h3>+</h3></button>
+              </div>
             </div>
-        {% endfor %}
-        {% if current_user.lists|length < 5 %}
-            <div class="card border-light mb-3" style="max-width: 20rem;">
-                <div class="card-body">
-                    <br><br><br>
-                  <button type="button" class="btn btn-primary btn-circle btn-xl" onclick="location.href='{{ url_for('add_list') }}'">Add List</button>
-                </div>
-            </div>
-        {% endif %}
+            <p class="card-text" data-toggle="tooltip" data-placement="bottom" title="List Description" align=center><small class="text-muted">{{ list.description }}</small></p>
         </div>
-
-    {% else %}
-        <p>You have no lists.</p>
-        <div class="card border-light mb-3" style="max-width: 20rem;">
-            <div class="card-body">
-              <button type="button" class="btn btn-primary btn-circle btn-xl" onclick="location.href='{{ url_for('add_list') }}'">Add List</button>
-            </div>
+    {% endfor %}
+{% if current_user.lists|length < 5 %}
+    <div class="card bg-custom-{{ current_user.lists|length + 1 }} mb-3" style="max-width: 20rem;">
+        <div class="card-body" align="center">
+            <button id="color1" style="background-color:#CA955C;" class="btn btn-circle btn-sm" type="button"></button>
+            <button id="color2" style="background-color:#F9CEEE;" class="btn btn-circle btn-sm" type="button"></button>
+            <button id="color3" style="background-color:#F9F3EE;" class="btn btn-circle btn-sm" type="button"></button>
+            <button id="color4" style="background-color:#CCF3EE;" class="btn btn-circle btn-sm" type="button"></button>
+            <button id="color5" style="background-color:#97C4B8;" class="btn btn-circle btn-sm" type="button"></button>
+            <br><br><br>
+            <button type="button" class="btn btn-primary btn-circle btn-xl" onclick="location.href='{{ url_for('add_list') }}'" style="font-family: 'Poppins', sans-serif; font-weight:500;">Add List</button>
         </div>
-    {% endif %}
+    </div>
+{% endif %}
+</div>
 {% else %}
 <div class="page-header">
-  <h1>Welcome to the Kanban App</h1>
+    <br><br>
+  <h1 style="font-family: 'Poppins', sans-serif;">Welcome to the Kanban App</h1>
 </div>
-<h4>Please <a href="{{url_for('login')}}">login</a> to get started.</h4>
+<br><br>
+<h4 style="font-family: 'Poppins', sans-serif;">Please <a href="{{url_for('login')}}">login</a> to get started.</h4>
 {% endif %}
 
 <!-- Modal -->
@@ -128,6 +134,22 @@
       modal.find('.modal-body').text(message)
       modal.find('.confirmButton').attr('onclick', "location.href ='"+action+"'")
     })
+    $("#color1").click(function(){
+        $("body").css("background-color", "#CA955C")
+    });
+    $("#color2").click(function(){
+        $("body").css("background-color", "#F9CEEE")
+    });
+    $("#color3").click(function(){
+        $("body").css("background-color", "#F9F3EE")
+    });
+    $("#color4").click(function(){
+        $("body").css("background-color", "#CCF3EE")
+    });
+    $("#color5").click(function(){
+        $("body").css("background-color", "#97C4B8")
+    });
+
 </script>
 
 {% endblock %}

@@ -1,16 +1,40 @@
 {% extends 'layouts/form.html' %}
 {% block title %}Login{% endblock %}
+{% block color %}{{ color_code }}{% endblock %}
+{% block pno %}{{ photo_no }}{% endblock %}
 {% block content %}
-{% if form.errors %}
-    {{ form.errors }}
-{% endif %}
-  <form method="post" class="form">
-    {{ form.csrf_token }}
-    <h3 class="form-heading">Login <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
-    {{ form.username(class_ = 'form-control first-input', placeholder = form.username.label.text, required = true, autofocus = true) }}
-    {{ form.password(class_ = 'form-control last-input', placeholder = form.password.label.text, required = true) }}
-    
-    <p class="pull-right"><a href="{{ url_for('register') }}">Register</a></p>
-    <input type="submit" value="Submit" class="btn btn-primary btn-lg btn-block">
-  </form>
+{{ form.csrf_token }}
+
+<div class="d-flex align-items-center mb-3 pb-1">
+  <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+  <span class="h1 fw-bold mb-0"><img src="/static/ico/logo.png" width="55" height="55" class="d-inline-block align-top" alt=""> Simple Kanban</span>
+</div>
+
+<h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>
+
+<div class="form-outline mb-4">
+  {{ form.username(id='username', class_ = 'form-control first-input', placeholder = form.username.label.text, required = true, autofocus = true) }}
+  <div class="invalid-feedback" for="username">Username doesn't exist!</div>
+</div>
+
+<div class="form-outline mb-4">
+  {{ form.password(id='password', class_ = 'form-control last-input', placeholder = form.password.label.text, required = true) }}
+  <div class="invalid-feedback" for="password">Wrong password!</div>
+</div>
+
+<div class="pt-1 mb-4">
+  <button type="submit" value="Submit" class="btn btn-dark btn-lg btn-block">Login</button>
+</div>
+
+<p class="mb-5 pb-lg-2" style="color: #393f81;">Don't have an account? <a href="{{url_for('register')}}"
+    style="color: #393f81;">Register here</a></p>
+
+{% endblock %}
+
+{% block error_script %}
+<script>
+    {% for error in form.errors %}
+        $('#{{ error }}').addClass('is-invalid')
+    {% endfor %}
+</script>
 {% endblock %}

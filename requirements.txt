@@ -3,7 +3,9 @@ bcrypt
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
+Flask-RESTful
 WTForms
+hashlib
 coverage
 # ecdsa
 # paramiko

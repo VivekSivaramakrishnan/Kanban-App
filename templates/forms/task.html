@@ -1,19 +1,69 @@
 {% extends 'layouts/form.html' %}
-{% block title %}Add list for {{ current_user.username }}{% endblock %}
+{% block title %}{{ 'Update' if task else 'Create' }} List{% endblock %}
+{% block color %}{{ color_code }}{% endblock %}
+{% block pno %}{{ photo_no }}{% endblock %}
 {% block content %}
-{% if form.errors %}
-    {{ form.errors }}
+{{ form.csrf_token }}
+
+<div class="d-flex align-items-center mb-3 pb-1">
+  <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+  <span class="h1 fw-bold mb-0"><img src="/static/ico/logo.png" width="55" height="55" class="d-inline-block align-top" alt=""> Simple Kanban</span>
+</div>
+{% if task %}
+<h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Editing <b>{{ task.title }}</b></h5>
+{% else %}
+<h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Add new task to <b>{{ list.name }}</b></h5>
 {% endif %}
-  <form method="post" class="form">
-    {{ form.csrf_token }}
-    <h3 class="form-heading">Add new task: <a href="{{ url_for('home') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
 
-    {{ form.list(class_ = 'form-control') }}
-    {{ form.title(class_ = 'form-control first-input', placeholder = form.title.label.text, required = true) }}
-    {{ form.content(class_ = 'form-control last-input', placeholder = form.content.label.text) }}
-    {{ form.deadline(class_ = 'form-control', placeholder = form.deadline.label.text) }}
-    Mark as complete: {{ form.status(class_ = 'form-control', placeholder = form.status.label.text) }}
+<div class="form-group row">
+    <div class="col-sm-4">List:</div>
+    <div class="form-outline col-sm-8 mb-4">
+      {{ form.list(class_ = 'form-control') }}
+    </div>
+</div>
 
-    <input type="submit" value="Submit" class="btn btn-primary btn-lg btn-block">
-  </form>
+<div class="form-group row">
+    <div class="col-sm-4">Title:</div>
+    <div class="form-outline col-sm-8 mb-4">
+      {{ form.title(class_ = 'form-control first-input', placeholder = form.title.label.text, required = true, id='title') }}
+      <div class="invalid-feedback" for="title">Task name already taken in selected list!</div>
+    </div>
+</div>
+<div class="form-group row">
+    <div class="col-sm-4">Description:</div>
+    <div class="form-outline col-sm-8 mb-4">
+      {{ form.content(class_ = 'form-control last-input', placeholder = form.content.label.text) }}
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-sm-4">Deadline:</div>
+    <div class="form-outline col-sm-8 mb-4">
+      {{ form.deadline(class_ = 'form-control', placeholder = form.deadline.label.text, id='deadline') }}
+      <div class="invalid-feedback" for="deadline">Deadline cannot be earlier than today if incomplete!</div>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-sm-4">Mark as complete:</div>
+    <div class="form-outline form-check col-sm-8">
+        {{ form.status(class_ = 'form-check-input', placeholder = form.status.label.text, id='status') }}
+    </div>
+</div>
+
+<div class="pt-1 mb-4">
+  <button type="submit" value="Submit" class="btn btn-dark btn-lg btn-block">Submit</button>
+</div>
+
+<p class="mb-5 pb-lg-2" style="color: #393f81;">Back to <a href="/"
+    style="color: #393f81;">home</a></p>
+
+{% endblock %}
+
+{% block error_script %}
+<script>
+    {% for error in form.errors %}
+        $('#{{ error }}').addClass('is-invalid')
+    {% endfor %}
+</script>
 {% endblock %}

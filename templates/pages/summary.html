@@ -1,0 +1,111 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Home{% endblock %}
+{% block color %}{{ color_code }}{% endblock %}
+{% block content %}
+
+
+<br><br>
+<div class="page-header">
+  <h1 style="font-family: 'Poppins', sans-serif;">Welcome, <b>{{ current_user.username }}</b>. <button class="btn btn-success btn-circle btn-sm" onclick="location.href='/stats/user'"></button></h1><br>
+</div>
+{% if current_user.lists %}
+    <div class="card-deck">
+    {% for list in current_user.lists %}
+        <div class="card mb-3 bg-custom-{{ 5 - current_user.lists.index(list) }}" style="max-width: 20rem;">
+            <div class="card-body" align="center">
+              <button class="btn btn-success btn-circle btn-sm" onclick="location.href='/stats/list/{{list.id}}'"></button>
+              <br><br>
+              <h3 class="card-title" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ list.name }}</h3>
+              <div class="card-text">
+                  {% if list.tasks %}
+                  <br>
+                  <div>
+                      <canvas id="piechart{{ list.id }}" style="max-width: 20rem;" height="300"></canvas>
+                      <script>
+                          const piedata{{ list.id }} = {
+                                          labels: ['Complete', 'Yet to complete', 'Deadline passed'],
+                                          datasets: [{
+                                            label: 'Numbers',
+                                            data: {{ data[list.id]['pie'] }},
+                                            backgroundColor: [
+                                              'rgb(54, 162, 235)',
+                                              'rgb(255, 205, 86)',
+                                              'rgb(255, 99, 132)'
+                                            ],
+                                            hoverOffset: 4
+                                          }]
+                                        };
+                            const pieconfig{{ list.id }} = {
+                                                              type: 'doughnut',
+                                                              data: piedata{{ list.id }},
+                                                            };
+                      </script>
+                  </div>
+                  <br>
+                  <div>
+                      <canvas id="barchart{{ list.id }}" style="max-width: 20rem;" height="300"></canvas>
+                      <script>
+                          const barlabels{{ list.id }} =  {{ data[list.id]['labels'] | tojson }};
+
+                          const bardata{{ list.id }} = {
+                            labels: barlabels{{ list.id }},
+                            datasets: [
+                                      {
+                                          label: 'Deadline passed',
+                                          backgroundColor: 'rgb(255, 99, 132)',
+                                          borderColor: 'rgb(255, 99, 132)',
+                                          data: {{ data[list.id]['passed'] }},
+                                      },
+                                      {
+                                          label: 'Yet to complete',
+                                          backgroundColor: 'rgb(255, 205, 86)',
+                                          borderColor: 'rgb(255, 205, 86)',
+                                          data: {{ data[list.id]['incomplete'] }},
+                                      },
+                                      {
+                                        label: 'Complete',
+                                        backgroundColor: 'rgb(54, 162, 235)',
+                                        borderColor: 'rgb(54, 162, 235)',
+                                        data: {{ data[list.id]['complete'] }},
+                                        }
+                            ]
+                          };
+
+                          const barconfig{{ list.id }} = {
+                            type: 'bar',
+                            data: bardata{{ list.id }},
+                            options: {scales: {x: {stacked: true}, y: {stacked: true}}, plugins: {legend: {display: false}}}
+                            }
+                      </script>
+                  </div>
+                  {% else %}
+                  <div class="card-text">
+                      You have no tasks.
+                  </div>
+                  {% endif %}
+              </div>
+            </div>
+            <p class="card-text" data-toggle="tooltip" data-placement="bottom" title="List Description" align=center><small class="text-muted">{{ list.description }}</small></p>
+        </div>
+    {% endfor %}
+    </div>
+
+{% else %}
+    <p>You have no lists.</p>
+{% endif %}
+
+<script type="text/javascript">
+
+{% for list in current_user.lists %}
+    const barchart{{ list.id }} = new Chart(
+      document.getElementById('barchart{{ list.id }}'),
+      barconfig{{ list.id }}
+    );
+    const piechart{{ list.id }} = new Chart(
+      document.getElementById('piechart{{ list.id }}'),
+      pieconfig{{ list.id }}
+    );
+{% endfor %}
+</script>
+
+{% endblock %}
