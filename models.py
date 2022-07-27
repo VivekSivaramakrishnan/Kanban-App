@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 # from sqlalchemy import Column, Integer, String
 from settings import db
 
-engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False})
+engine = create_engine('sqlite:///database.db?charset=utf8', connect_args={'check_same_thread': False})
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
@@ -61,7 +61,7 @@ class Task(Base):
 
     created = db.Column(db.DateTime)
     updated = db.Column(db.DateTime)
-    # No need of completed time field. If status=true the updated=completed
+    # No need of completed time field. If status=true then updated=completed
 
     list_id = db.Column(db.Integer, db.ForeignKey('Lists.id'), nullable=False, primary_key=True)
     # Composite PK list_id, title
