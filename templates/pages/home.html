@@ -56,16 +56,16 @@
                               {% set cscheme = 'danger ' %}
                               {% endif %}
                           {% endif %}
-                          <div class="card text-white border-{{ cscheme }} mb-3" style="max-width: 20rem;">
+                          <div class="card text-white bg-custom-{{ cscheme }} mb-3" style="max-width: 20rem;">
                               <div class="card-header">
                                   <a href="/update/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-primary">update</span></a>
                                   <a href="/delete/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-danger" style="float:right;">delete</span></a>
                               </div>
                               <div class="card-body">
-                                <h5 class="card-title text-{{ cscheme }}" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ task.title }}</h5>
+                                <h5 class="card-title text-dark" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ task.title }}</h5>
                                 <p class="card-title text-dark" style="font-size:15px"><b style="font-family: 'Poppins', sans-serif; font-weight:600;">Deadline: </b>{{ task.deadline.strftime('%d-%m-%Y') }}</p>
                                 {% if task.status %}
-                                <p class="card-title text-{{ cscheme }}" style="font-size:15px"><b style="font-family: 'Poppins', sans-serif; font-weight:600;">Completed on: </b>{{ task.updated.strftime('%d-%m-%Y') }}</p>
+                                <p class="card-title text-dark" style="font-size:15px"><b style="font-family: 'Poppins', sans-serif; font-weight:600;">Completed on: </b>{{ task.updated.strftime('%d-%m-%Y') }}</p>
                                 {% endif %}
                                 <p class="card-text text-dark">{{ task.content }}</p>
                               </div>

@@ -26,7 +26,7 @@
     <div class="col-sm-4">Title:</div>
     <div class="form-outline col-sm-8 mb-4">
       {{ form.title(class_ = 'form-control first-input', placeholder = form.title.label.text, required = true, id='title') }}
-      <div class="invalid-feedback" for="title">Task name already taken in selected list!</div>
+      <div class="invalid-feedback" id="invalid-title" for="title"></div>
     </div>
 </div>
 <div class="form-group row">
@@ -40,7 +40,7 @@
     <div class="col-sm-4">Deadline:</div>
     <div class="form-outline col-sm-8 mb-4">
       {{ form.deadline(class_ = 'form-control', placeholder = form.deadline.label.text, id='deadline') }}
-      <div class="invalid-feedback" for="deadline">Deadline cannot be earlier than today if incomplete!</div>
+      <div class="invalid-feedback" id="invalid-deadline" for="deadline"></div>
     </div>
 </div>
 
@@ -64,6 +64,7 @@
 <script>
     {% for error in form.errors %}
         $('#{{ error }}').addClass('is-invalid')
+        $('#invalid-{{ error }}').text("{{form.errors[error][0]}}")
     {% endfor %}
 </script>
 {% endblock %}

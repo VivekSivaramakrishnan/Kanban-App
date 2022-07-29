@@ -61,5 +61,9 @@ class TaskForm(FlaskForm):
 
     def validate_title(form, field):
         task = Task.query.get((form.title.data, int(form.list.data)))
+
+        if any([i in form.title.data for i in ' -._~:/?#[]@!$&\'\\()*+,;=']):
+            raise ValidationError('Invalid symbol used in task name. Do not use space or any other special characters.')
+
         if task and not form.update:
-            raise ValidationError('Task name taken')
+            raise ValidationError('Task name already taken in list!')

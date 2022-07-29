@@ -1,12 +1,7 @@
-Fabric
-bcrypt
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
 Flask-RESTful
+pandas
 WTForms
 hashlib
-coverage
-# ecdsa
-# paramiko
-# pycrypto

@@ -1,0 +1,274 @@
+openapi: 3.0.0
+info:
+  description: "API details for the Kanban Application by `Vivek Sivaramakrishnan`"
+  version: 1.0.0
+  title: Simple Kanban
+  contact:
+    email: 21f2000045@student.onlinedegree.iitm.ac.in
+
+paths:
+  /api/login:
+    post:
+      tags:
+        - User
+      summary: Login user for user-specific transcations
+      description: API to login user. Grants access to user-defined lists and tasks.
+      requestBody:
+        $ref: "#/components/requestBodies/User"
+      responses:
+        "200":
+          description: Credentials valid; user logged in!
+        "400":
+          description: Username/Password not provided
+        "401":
+          description: Wrong Username/Password
+
+  /api/logout:
+    get:
+      tags:
+        - User
+      summary: Logout user
+      description: Logout the current user. The user is required to be logged in, prior to logout.
+      responses:
+        "200":
+          description: Logged out successfully
+        "401":
+          description: User not logged in
+
+  /api/list:
+    get:
+      tags:
+        - List
+      summary: Get list details of current user
+      description: Get list details such as
+      responses:
+        "200":
+          description: List details retrieved successfully
+        "401":
+          description: User not logged in
+    post:
+      tags:
+        - List
+      summary: Add new list
+      description: Add a new list to user
+      requestBody:
+        $ref: "#/components/requestBodies/List"
+      responses:
+        "200":
+          description: List details retrieved successfully
+        "401":
+          description: User not logged in
+    put:
+      tags:
+        - List
+      summary: Update list
+      description: Update an existing list
+      requestBody:
+        $ref: "#/components/requestBodies/idList"
+      responses:
+        "200":
+          description: List details updated successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+    delete:
+      tags:
+        - List
+      summary: Delete list
+      description: Delete list along with its tasks given list id
+      requestBody:
+        $ref: "#/components/requestBodies/id"
+      responses:
+        "200":
+          description: List deleted successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+  /api/task/{list_id}:
+    parameters:
+        - in: path
+          name: list_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+    get:
+      tags:
+        - Task
+      summary: List out tasks
+      description: List out all details of tasks given list id
+      responses:
+        "200":
+          description: Tasks retrieved successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+    post:
+      tags:
+        - Task
+      summary: Create new task
+      description: Create new task
+      requestBody:
+        $ref: "#/components/requestBodies/Task"
+      responses:
+        "200":
+          description: Task created successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+    put:
+      tags:
+        - Task
+      summary: Update task
+      description: Update existing task
+      requestBody:
+        $ref: "#/components/requestBodies/Task"
+      responses:
+        "200":
+          description: Task updated successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+    delete:
+      tags:
+        - Task
+      summary: Delete task
+      description: Delete existing task
+      requestBody:
+        $ref: "#/components/requestBodies/TaskTitle"
+      responses:
+        "200":
+          description: Task deleted successfully
+        "400":
+          description: Validation Error
+        "401":
+          description: User not logged in
+
+  /api/stats:
+    get:
+      tags:
+        - Stats
+      summary: Get details of lists of user
+      description: Get details of lists of user
+      responses:
+        "200":
+          description: File generated and recieved successfully
+        "401":
+          description: User not logged in
+
+servers:
+  - url: http://127.0.0.1:5000/
+components:
+  requestBodies:
+    User:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/User"
+      description: User Object
+      required: true
+    List:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/List"
+      description: List Object
+      required: true
+    idList:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/idList"
+      description: List Object
+      required: true
+    id:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/id"
+      description: List Object
+      required: true
+    Task:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Task"
+      description: List Object
+      required: true
+    TaskTitle:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TaskTitle"
+      description: List Object
+      required: true
+
+
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          example: test
+        password:
+          type: string
+          example: qq
+    List:
+      type: object
+      properties:
+        name:
+          type: string
+          example: list_name
+        description:
+          type: string
+          example: list_description
+    idList:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: list_name
+        description:
+          type: string
+          example: list_description
+    id:
+      type: object
+      properties:
+        id:
+          type: integer
+    Task:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "example string"
+        content:
+          type: string
+          example: "example content"
+        deadline:
+          type: string
+          example: "example deadline"
+        status:
+          type: boolean
+          example: true
+    TaskTitle:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "example string"
+
+   

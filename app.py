@@ -2,7 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, after_this_request
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, after_this_request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import *
 import logging
@@ -14,6 +14,8 @@ from datetime import datetime
 from settings import app, db
 from api import api
 from password import hasher
+from io import BytesIO
+import pandas as pd
 
 db.init_app(app)
 
@@ -26,8 +28,17 @@ app.app_context().push()
 
 @login_manager.user_loader
 def user_loader(user_id):
-    '''Given *user_id*, return the associated User object.'''
-    return User.query.get(user_id)
+    return db.session.query(User).get(user_id)
+
+@login_manager.request_loader
+def user_loader(request):
+    try:
+        return db.session.query(User).get(request.json['username'])
+    except:
+        try:
+            return db.session.query(User).get(current_user.username)
+        except:
+            return None
 
 @app.route('/')
 def home():
@@ -127,7 +138,7 @@ def move_tasks(list_id, xlist_id):
 def add_task(list_id):
 
     default_list = db.session.query(List).get(list_id)
-    list_names = [(list.id, list.name) for list in db.session.query(List).filter(List.username == current_user.username)]
+    list_names = [(list.id, list.name) for list in current_user.lists]
     # todate = datetime.now().strftime('%d/%m/%y')
 
     form = TaskForm(request.form,
@@ -157,7 +168,7 @@ def add_task(list_id):
 def update_task(list_id, task_title):
 
     task = db.session.query(Task).get((task_title, list_id))
-    list_names = [(list.id, list.name) for list in db.session.query(List).all()]
+    list_names = [(list.id, list.name) for list in current_user.lists]
     form = TaskForm(request.form,
                     list = task.list_id,
                     title = task.title,
@@ -232,25 +243,44 @@ def list_stat(list_id):
     else:
         return render_template('errors/500.html', error='List id does not exist')
 
-    with open(f'generated_reports/{current_user.username}_{list.name}.csv', 'w', encoding="utf-8") as f:
-        f.write('Title, Content, Deadline, Status, Created, Updated, List ID\n')
-        for task in list.tasks:
-            f.write(', '.join([str(i).strip('\n') for i in [task.title, task.content, task.deadline, task.status, task.created, task.updated, list_id]]))
-            f.write('\n')
+    table = []
+    for task in list.tasks:
+        table.append([str(i) for i in [task.title, task.content, task.deadline, task.status, task.created, task.updated]])
 
-    return send_from_directory('generated_reports', f'{current_user.username}_{list.name}.csv', as_attachment=True)
+    df = pd.DataFrame(table, columns=['Title', 'Content', 'Deadline', 'Status', 'Created', 'Updated'])
+
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    df.to_excel(writer, startrow = 0, merge_cells = False, sheet_name = f"{list.name}")
+    writer.close()
+
+    output.seek(0)
+
+    return send_file(output, mimetype="application/msexcel", attachment_filename=f"{current_user.username}_{list.name}.xlsx", as_attachment=True)
 
 @app.route('/stats/user', methods=['GET'])
 @login_required
 def user_stat():
 
-    with open(f'generated_reports/{current_user.username}_Lists.csv', 'w', encoding="utf-8") as f:
-        f.write('List ID, Name, Description\n')
-        for list in current_user.lists:
-            f.write(', '.join([str(i) for i in [list.id, list.name, list.description]]))
-            f.write('\n')
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
 
-    return send_from_directory('generated_reports', f'{current_user.username}_Lists.csv', as_attachment=True)
+    table = [[list.id, list.name, list.description] for list in current_user.lists]
+    df = pd.DataFrame(table, columns=['List ID', 'Name', 'Description'])
+
+    df.to_excel(writer, startrow = 0, merge_cells = False, sheet_name = f"{current_user.username} Lists")
+
+    for list in current_user.lists:
+        table = []
+        for task in list.tasks:
+            table.append([str(i) for i in [task.title, task.content, task.deadline, task.status, task.created, task.updated]])
+        df = pd.DataFrame(table, columns=['Title', 'Content', 'Deadline', 'Status', 'Created', 'Updated'])
+        df.to_excel(writer, startrow = 0, merge_cells = False, sheet_name = f"{list.name}")
+
+    writer.close()
+    output.seek(0)
+    return send_file(output, mimetype="application/msexcel", attachment_filename=f"{current_user.username}_lists.xlsx", as_attachment=True)
 
 
 @app.route('/logout', methods=['GET'])

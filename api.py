@@ -1,10 +1,12 @@
 from settings import app, db
 from models import *
 from flask_login import *
-from flask import jsonify, request, send_from_directory
+from flask import jsonify, request, Response
 from password import hasher
 from flask_restful import Resource, Api, abort
 from datetime import datetime
+import pandas as pd
+from io import BytesIO
 
 api = Api(app)
 
@@ -16,10 +18,10 @@ class LoginAPI(Resource):
         password = request.json['password']
 
         if username is None:
-            return abort(400, message='Username not provided.', sample='/api/login?username=test&password=qq')
+            return abort(400, message='Username not provided.')
 
         if password is None:
-            return abort(400, message='Password not provided.', sample='/api/login?username=test&password=qq')
+            return abort(400, message='Password not provided.')
 
         user = db.session.query(User).get(username)
 
@@ -117,8 +119,11 @@ class TaskAPI(Resource):
 
         list = db.session.query(List).get(list_id)
 
+        if not list:
+            return abort(400, message="List ID does not exist")
+
         if list.username != current_user.username:
-            return abort(400, message='Specified task does not come under login scope')
+            return abort(400, message='Specified list id does not come under login scope')
 
         result = {'id':list.id, 'name':list.name, 'description':list.description, 'tasks':[]}
         for task in list.tasks:
@@ -130,6 +135,9 @@ class TaskAPI(Resource):
     def post(self, list_id):
 
         list = db.session.query(List).get(list_id)
+
+        if not list:
+            return abort(400, message="List ID does not exist")
 
         if list.username != current_user.username:
             return abort(400, message='Specified task does not come under login scope')
@@ -176,6 +184,9 @@ class TaskAPI(Resource):
         task = db.session.query(Task).get((data['title'], list_id))
         list = db.session.query(List).get(list_id)
 
+        if not list:
+            return abort(400, message="List ID does not exist")
+
         if list.username != current_user.username:
             return abort(400, message='Specified task does not come under login scope')
 
@@ -193,28 +204,53 @@ class TaskAPI(Resource):
 
         return jsonify({'message':'Successfully updated task!'})
 
+    def delete(self, list_id):
+
+        task = db.session.query(Task).get((data['title'], list_id))
+        list = db.session.query(List).get(list_id)
+
+        if not list:
+            return abort(400, message="List ID does not exist")
+
+        if list.username != current_user.username:
+            return abort(400, message='Specified task does not come under login scope')
+
+        if not task:
+            return abort(400, message="Task not found")
+
+        db.session.delete(task)
+        db.session.commit()
+
+        return jsonify({'message':'Successfully deleted task!'})
+
 class StatsAPI(Resource):
 
     @login_required
     def get(self):
 
-        with open(f'generated_reports/{current_user.username}_list_stats.csv', 'w', encoding="utf-8") as f:
-            f.write('List ID, Name, Completed Tasks, Incomplete Tasks, Pending tasks\n')
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        table = []
 
-            for list in current_user.lists:
-                c_task, ic_task, p_task = 0, 0, 0
-                for task in list.tasks:
-                    if task.status:
-                        c_task += 1
-                    elif task.deadline <= datetime.date(datetime.now()):
-                        ic_task += 1
-                    else:
-                        p_task += 1
+        for list in current_user.lists:
+            c_task, ic_task, p_task = 0, 0, 0
+            for task in list.tasks:
+                if task.status:
+                    c_task += 1
+                elif task.deadline <= datetime.date(datetime.now()):
+                    ic_task += 1
+                else:
+                    p_task += 1
 
-                f.write(', '.join([str(i) for i in [list.id, list.name, c_task, ic_task, p_task]]))
-                f.write('\n')
+            table.append([list.id, list.name, c_task, ic_task, p_task])
 
-        return send_from_directory('generated_reports', f'{current_user.username}_list_stats.csv', as_attachment=True)
+        df = pd.DataFrame(table, columns=['List ID', 'Name', 'Completed Tasks', 'Incomplete Tasks', 'Pending tasks'])
+        df.to_excel(writer, startrow = 0, merge_cells = False, sheet_name = f"{current_user.username}")
+        writer.close()
+
+        output.seek(0)
+
+        return send_file(output, mimetype="application/msexcel", attachment_filename=f"{current_user.username}_list_stats.xlsx", as_attachment=True)
 
 
 api.add_resource(LoginAPI, '/api/login')
