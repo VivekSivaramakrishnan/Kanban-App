@@ -1,12 +1,12 @@
-from settings import app, db
-from models import *
 from flask_login import *
-from flask import jsonify, request, Response
+from flask import jsonify, request, send_file
 from password import hasher
-from flask_restful import Resource, Api, abort
+from flask_restful import Api, Resource, abort
 from datetime import datetime
 import pandas as pd
 from io import BytesIO
+from app import app, db
+from models import *
 
 api = Api(app)
 
@@ -63,7 +63,7 @@ class ListAPI(Resource):
     def post(self):
 
         if len(current_user.lists) == 5:
-            return abort(400, 'Cannot add: 5 is the maximum number of lists for a user')
+            return abort(400, message='Cannot add: 5 is the maximum number of lists for a user')
 
         data = request.json
         list = List(name=data['name'],

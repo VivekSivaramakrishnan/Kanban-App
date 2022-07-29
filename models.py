@@ -1,8 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy import Column, Integer, String
-from settings import db
+from app import db
 
 engine = create_engine('sqlite:///database.db?charset=utf8', connect_args={'check_same_thread': False})
 db_session = scoped_session(sessionmaker(autocommit=False,
@@ -14,7 +13,7 @@ Base.query = db_session.query_property()
 # User -> List -> Task
 # ->: One-to-Many
 
-# Set your classes here.
+
 class User(Base):
     __tablename__ = 'Users'
 
@@ -23,8 +22,6 @@ class User(Base):
     authenticated = db.Column(db.Boolean, default=False)
 
     lists = db.relationship('List')
-
-    # The following 4 methods are the requirements for flask's login system.
 
     def is_active(self):
         return True
