@@ -14,17 +14,17 @@
 
 <div class="form-outline mb-4">
   {{ form.username(id='username', class_ = 'form-control first-input', placeholder = form.username.label.text, required = true, autofocus = true) }}
-  <div class="invalid-feedback" for="username">Username already taken :(</div>
+  <div class="invalid-feedback" for="username" id="invalid-username">Username already taken :(</div>
 </div>
 
 <div class="form-outline mb-4">
   {{ form.password(id='password', class_ = 'form-control', placeholder = form.password.label.text, required = true) }}
-  <div class="invalid-feedback" for="password">Wrong password!</div>
+  <div class="invalid-feedback" for="password" id="invalid-password">Wrong password!</div>
 </div>
 
 <div class="form-outline mb-4">
   {{ form.confirm(id='confirm', class_ = 'form-control last-input', placeholder = form.confirm.label.text, required = true) }}
-  <div class="invalid-feedback" for="confirm">Passwords don't match!</div>
+  <div class="invalid-feedback" for="confirm" id="invalid-confirm">Passwords don't match!</div>
 </div>
 
 <div class="pt-1 mb-4">
@@ -34,12 +34,4 @@
 <p class="mb-5 pb-lg-2" style="color: #393f81;">Already registered? <a href="{{url_for('login')}}"
     style="color: #393f81;">Login Here</a></p>
 
-{% endblock %}
-
-{% block error_script %}
-<script>
-    {% for error in form.errors %}
-        $('#{{ error }}').addClass('is-invalid')
-    {% endfor %}
-</script>
 {% endblock %}

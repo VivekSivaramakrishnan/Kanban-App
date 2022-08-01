@@ -19,13 +19,16 @@ class RegisterForm(FlaskForm):
     confirm = PasswordField(
         'Repeat Password',
         [DataRequired(),
-        EqualTo('password', message='Passwords don\'t match')]
+        EqualTo('password', message='Passwords must match')]
     )
 
     def validate_username(form, field):
         user = User.query.get(form.username.data)
         if user:
             raise ValidationError('Username exists')
+
+        if any([i in form.username.data for i in ' -._~:/?#[]@!$&\'\\()*+,;=']):
+            raise ValidationError('Invalid symbol used in username name. Do not use space or any other special characters.')
 
 
 class LoginForm(FlaskForm):
@@ -36,6 +39,10 @@ class LoginForm(FlaskForm):
         user = User.query.get(form.username.data)
         if not user:
             raise ValidationError('No such user found.')
+
+        if any([i in form.username.data for i in ' -._~:/?#[]@!$&\'\\()*+,;=']):
+            raise ValidationError('Invalid symbol used in username name. Do not use space or any other special characters.')
+
 
     def validate_password(form, field):
         user = User.query.get(form.username.data)

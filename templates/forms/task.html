@@ -59,12 +59,3 @@
     style="color: #393f81;">home</a></p>
 
 {% endblock %}
-
-{% block error_script %}
-<script>
-    {% for error in form.errors %}
-        $('#{{ error }}').addClass('is-invalid')
-        $('#invalid-{{ error }}').text("{{form.errors[error][0]}}")
-    {% endfor %}
-</script>
-{% endblock %}

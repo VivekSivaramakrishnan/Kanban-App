@@ -25,12 +25,12 @@ def user_loader(request):
 
 @app.route('/')
 def home():
-    return render_template('pages/home.html', today=datetime.date(datetime.now()), color_code="CA955C")
+    return render_template('pages/home.html', today=datetime.date(datetime.now()), color_code="BE8C63")
 
 
 @app.route('/about')
 def about():
-    return render_template('pages/about.html', current_user=current_user, color_code="F4A502")
+    return render_template('pages/about.html', current_user=current_user, color_code="FBFBFB")
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
