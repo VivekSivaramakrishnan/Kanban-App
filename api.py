@@ -7,6 +7,8 @@ import pandas as pd
 from io import BytesIO
 from app import app, db
 from models import *
+import jwt
+from api_token_auth import token_required
 
 api = Api(app)
 
@@ -31,22 +33,22 @@ class LoginAPI(Resource):
         if user.password != hasher(username, password):
             return abort(401, message='Wrong password')
 
-        # Login credentials verified. Log in user now.
-        login_user(user)
+        # Login credentials verified. Return log in token now
+        token = jwt.encode({'user':username}, app.config['SECRET_KEY'], algorithm="HS256")
 
-        return jsonify({'message':f'Welcome to the kanban app, {username}. You have been logged in successfully!'})
+        return jsonify({'message':f'Welcome to the kanban app, {username}.', 'api_key':token})
 
 class LogoutAPI(Resource):
 
-    @login_required
-    def get(self):
-        logout_user()
+    @token_required
+    def get(self, current_user=''):
+        print(current_user)
         return jsonify({'message':'Logged out successfully'})
 
 class ListAPI(Resource):
 
-    @login_required
-    def get(self):
+    @token_required
+    def get(self, current_user=''):
 
         user = db.session.query(User).get(current_user.username)
         result = {'message':f'Lists for {current_user.username}', 'lists':[]}
@@ -59,8 +61,8 @@ class ListAPI(Resource):
 
         return jsonify(result)
 
-    @login_required
-    def post(self):
+    @token_required
+    def post(self, current_user=''):
 
         if len(current_user.lists) == 5:
             return abort(400, message='Cannot add: 5 is the maximum number of lists for a user')
@@ -74,8 +76,8 @@ class ListAPI(Resource):
 
         return jsonify({'message':f'successfully created list! List id: {list.id}'})
 
-    @login_required
-    def put(self):
+    @token_required
+    def put(self, current_user=''):
 
         data = request.json
 
@@ -95,8 +97,8 @@ class ListAPI(Resource):
 
         return jsonify({'message':f'successfully updated {list.name}.'})
 
-    @login_required
-    def delete(self):
+    @token_required
+    def delete(self, current_user=''):
         data = request.json
 
         list = db.session.query(List).get(data['id'])
@@ -114,8 +116,8 @@ class ListAPI(Resource):
 
 class TaskAPI(Resource):
 
-    @login_required
-    def get(self, list_id):
+    @token_required
+    def get(self, list_id, current_user=''):
 
         list = db.session.query(List).get(list_id)
 
@@ -131,8 +133,8 @@ class TaskAPI(Resource):
 
         return jsonify(result)
 
-    @login_required
-    def post(self, list_id):
+    @token_required
+    def post(self, list_id, current_user=''):
 
         list = db.session.query(List).get(list_id)
 
@@ -168,8 +170,8 @@ class TaskAPI(Resource):
 
         return jsonify({'message':'Successfully added task!'})
 
-    @login_required
-    def put(self, list_id):
+    @token_required
+    def put(self, list_id, current_user=''):
 
         data = request.json
 
@@ -206,6 +208,8 @@ class TaskAPI(Resource):
 
     def delete(self, list_id):
 
+        data = request.json
+
         task = db.session.query(Task).get((data['title'], list_id))
         list = db.session.query(List).get(list_id)
 
@@ -225,8 +229,8 @@ class TaskAPI(Resource):
 
 class StatsAPI(Resource):
 
-    @login_required
-    def get(self):
+    @token_required
+    def get(self, current_user=''):
 
         output = BytesIO()
         writer = pd.ExcelWriter(output, engine='xlsxwriter')

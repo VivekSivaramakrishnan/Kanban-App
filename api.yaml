@@ -6,6 +6,10 @@ info:
   contact:
     email: 21f2000045@student.onlinedegree.iitm.ac.in
 
+
+security:
+       - api_key: []
+
 paths:
   /api/login:
     post:
@@ -25,6 +29,7 @@ paths:
 
   /api/logout:
     get:
+
       tags:
         - User
       summary: Logout user
@@ -169,6 +174,12 @@ paths:
 servers:
   - url: http://127.0.0.1:5000/
 components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+      description: Requests should pass an api_key header.
   requestBodies:
     User:
       content:
@@ -220,10 +231,10 @@ components:
       properties:
         username:
           type: string
-          example: test
+          example: api_test
         password:
           type: string
-          example: qq
+          example: apeeiii
     List:
       type: object
       properties:

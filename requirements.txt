@@ -4,3 +4,4 @@ Flask-WTF
 Flask-RESTful
 pandas
 WTForms
+pyJWT
