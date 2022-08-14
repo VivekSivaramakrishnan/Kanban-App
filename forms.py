@@ -6,15 +6,15 @@ from datetime import datetime
 from models import *
 from password import hasher
 
-# Set your classes here.
-
 
 class RegisterForm(FlaskForm):
     username = TextField(
-        'Username', validators=[DataRequired(), Length(min=1, max=25)]
+        'Username',
+        [DataRequired(), Length(min=1, max=25)]
     )
     password = PasswordField(
-        'Password', validators=[DataRequired(), Length(min=1, max=40)]
+        'Password',
+        [DataRequired(), Length(min=1, max=40)]
     )
     confirm = PasswordField(
         'Repeat Password',
@@ -32,8 +32,15 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    username = TextField('Username', [DataRequired()])
-    password = PasswordField('Password', [DataRequired()])
+    username = TextField(
+        'Username',
+        [DataRequired()]
+    )
+
+    password = PasswordField(
+        'Password',
+        [DataRequired()]
+    )
 
     def validate_username(form, field):
         user = User.query.get(form.username.data)
@@ -51,14 +58,26 @@ class LoginForm(FlaskForm):
                 raise ValidationError('Wrong password')
 
 class ListForm(FlaskForm):
-    name = TextField('Name', [DataRequired(), Length(min=1, max=25)])
+    name = TextField(
+        'Name',
+        [DataRequired(), Length(min=1, max=25)]
+    )
+
     description = TextAreaField('Description')
 
 class TaskForm(FlaskForm):
     list = SelectField('List')
-    title = TextField('Title', [DataRequired(), Length(min=1, max=25)])
+    title = TextField(
+        'Title',
+        [DataRequired(), Length(min=1, max=25)]
+    )
+
     content = TextAreaField('Content')
-    deadline = DateField('Deadline', [DataRequired()])
+    deadline = DateField(
+        'Deadline',
+        [DataRequired()]
+    )
+    
     status = BooleanField('Mark as complete')
     update = False
 

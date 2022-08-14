@@ -58,8 +58,8 @@
                           {% endif %}
                           <div class="card text-white bg-custom-{{ cscheme }} mb-3" style="max-width: 20rem;">
                               <div class="card-header">
-                                  <a href="/update/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-primary">update</span></a>
-                                  <a href="/delete/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-danger" style="float:right;">delete</span></a>
+                                  <a href="/update/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-custom-{{ current_user.lists.index(list) + 1 }}">update</span></a>
+                                  <a href="/delete/task/{{ list.id }}/{{ task.title }}"><span class="material-icons text-custom-{{ current_user.lists.index(list) + 1 }}" style="float:right;">delete</span></a>
                               </div>
                               <div class="card-body">
                                 <h5 class="card-title text-dark" style="font-family: 'Poppins', sans-serif; font-weight:600;">{{ task.title }}</h5>

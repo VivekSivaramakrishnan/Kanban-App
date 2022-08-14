@@ -8,6 +8,17 @@ from io import BytesIO
 import pandas as pd
 from app import app, db, login_manager
 from api import api
+from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
+import base64
+import matplotlib
+
+matplotlib.rcParams['axes.spines.right'] = False
+matplotlib.rcParams['axes.spines.top'] = False
+matplotlib.rcParams['font.family'] = 'monospace'
+matplotlib.rcParams['font.sans-serif'] = ['Verdana']
+matplotlib.rcParams['font.size'] = 16
+
 
 @login_manager.user_loader
 def user_loader(user_id):
@@ -32,6 +43,7 @@ def home():
 def about():
     return render_template('pages/about.html', current_user=current_user, color_code="FBFBFB")
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
@@ -46,6 +58,7 @@ def register():
 
     return render_template('forms/register.html', form=form, color_code="F4F5D2", photo_no=0)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm(request.form)
@@ -57,6 +70,7 @@ def login():
         return redirect(url_for("home"))
 
     return render_template('forms/login.html', form=form, color_code="9A616D", photo_no=1)
+
 
 @app.route('/add/list', methods=['GET', 'POST'])
 @login_required
@@ -75,6 +89,7 @@ def add_list():
 
     return render_template('forms/list.html', form=form, list=[], color_code="F0CCDC", photo_no=2)
 
+
 @app.route('/update/list/<list_id>', methods=['GET', 'POST'])
 @login_required
 def update_list(list_id):
@@ -91,6 +106,7 @@ def update_list(list_id):
 
     return render_template('forms/list.html', form=form, list=list, color_code="C6EFCA", photo_no=3)
 
+
 @app.route('/delete/list/<list_id>')
 @login_required
 def delete_list(list_id):
@@ -99,6 +115,7 @@ def delete_list(list_id):
     db.session.commit()
 
     return redirect(url_for('home'))
+
 
 @app.route('/delete/list/<list_id>/<xlist_id>')
 @login_required
@@ -115,6 +132,7 @@ def move_tasks(list_id, xlist_id):
     db.session.commit()
 
     return redirect(url_for('home'))
+
 
 @app.route('/add/task/<list_id>', methods=['GET', 'POST'])
 @login_required
@@ -176,6 +194,7 @@ def update_task(list_id, task_title):
 
     return render_template('forms/task.html', form=form, list=list, task=task, color_code="FCF5DC", photo_no=5)
 
+
 @app.route('/delete/task/<list_id>/<task_title>')
 @login_required
 def delete_task(list_id, task_title):
@@ -185,10 +204,18 @@ def delete_task(list_id, task_title):
 
     return redirect(url_for('home'))
 
+
 @app.route('/summary')
 @login_required
 def summary():
+
+    labels = ['complete', 'incomplete', 'passed']
+    colors = ['#54BAB9', '#F7D59C', '#BB6464']
+
     data = dict()
+    pies = dict()
+    bars = dict()
+
     for list in current_user.lists:
         dates = dict()
         for task in sorted(list.tasks, key=lambda t: t.deadline):
@@ -214,7 +241,28 @@ def summary():
 
         data[list.id]['pie'] = [sum(data[list.id][i]) for i in ['complete', 'incomplete', 'passed']]
 
-    return render_template('pages/summary.html', data=data, color_code="8BA1AD")
+        pie_fig = Figure()
+        pie_ax = pie_fig.subplots()
+        pie_ax.pie(data[list.id]['pie'], colors=colors, explode=(0.05, 0.05, 0.05))
+        pie_buf = BytesIO()
+        pie_fig.savefig(pie_buf, format="png", transparent=True)
+        pie = base64.b64encode(pie_buf.getbuffer()).decode("ascii")
+        pies[list.id] = {'pie':pie, 'data':data[list.id]['pie']}
+
+        bar_fig = Figure()
+        bar_ax = bar_fig.subplots()
+        bar_ax.bar(data[list.id]['labels'], data[list.id]['incomplete'], color=colors[1])
+        bar_ax.bar(data[list.id]['labels'], data[list.id]['passed'], color=colors[2], bottom=data[list.id]['incomplete'])
+        bar_ax.bar(data[list.id]['labels'], data[list.id]['complete'], color=colors[0], bottom=[i+j for i,j in zip(data[list.id]['passed'], data[list.id]['incomplete'])])
+        bar_ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        bar_ax.set_xlabel('Deadline')
+        bar_buf = BytesIO()
+        bar_fig.savefig(bar_buf, format="png", transparent=True)
+        bar = base64.b64encode(bar_buf.getbuffer()).decode("ascii")
+        bars[list.id] = bar
+
+    return render_template('pages/summary.html', pies=pies, bars=bars, color_code="8BA1AD")
+
 
 @app.route('/stats/list/<list_id>', methods=['GET'])
 @login_required
@@ -241,6 +289,7 @@ def list_stat(list_id):
     output.seek(0)
 
     return send_file(output, mimetype="application/msexcel", attachment_filename=f"{current_user.username}_{list.name}.xlsx", as_attachment=True)
+
 
 @app.route('/stats/user', methods=['GET'])
 @login_required
@@ -281,13 +330,3 @@ def internal_error(error):
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('errors/404.html'), 404
-
-if not app.debug:
-    file_handler = FileHandler('error.log')
-    file_handler.setFormatter(
-        Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-    )
-    app.logger.setLevel(logging.INFO)
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.info('errors')
