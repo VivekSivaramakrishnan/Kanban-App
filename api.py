@@ -38,12 +38,6 @@ class LoginAPI(Resource):
 
         return jsonify({'message':f'Welcome to the kanban app, {username}.', 'api_key':token})
 
-class LogoutAPI(Resource):
-
-    @token_required
-    def get(self, current_user=''):
-        print(current_user)
-        return jsonify({'message':'Logged out successfully'})
 
 class ListAPI(Resource):
 
@@ -258,7 +252,6 @@ class StatsAPI(Resource):
 
 
 api.add_resource(LoginAPI, '/api/login')
-api.add_resource(LogoutAPI, '/api/logout')
 api.add_resource(ListAPI, '/api/list')
 api.add_resource(TaskAPI, '/api/task/<int:list_id>')
 api.add_resource(StatsAPI, '/api/stats')

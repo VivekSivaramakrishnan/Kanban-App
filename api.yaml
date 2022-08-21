@@ -27,18 +27,6 @@ paths:
         "401":
           description: Wrong Username/Password
 
-  /api/logout:
-    get:
-
-      tags:
-        - User
-      summary: Logout user
-      description: Logout the current user. The user is required to be logged in, prior to logout.
-      responses:
-        "200":
-          description: Logged out successfully
-        "401":
-          description: User not logged in
 
   /api/list:
     get:
@@ -281,5 +269,3 @@ components:
         title:
           type: string
           example: "example string"
-
-   
