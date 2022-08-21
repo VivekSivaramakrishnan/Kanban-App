@@ -24,6 +24,9 @@
                       <img src='data:image/png;base64,{{ pies[list.id].pie }}'/>
                   </p>
                   <img src='data:image/png;base64,{{ bars[list.id] }}'/>
+                  <p class="card-text" data-toggle="tooltip" data-placement="bottom" title="GANTT Chart of tasks. Note that tasks with deadline earlier than task creation date are omitted." align=center>
+                      <img src='data:image/png;base64,{{ gantts[list.id] }}'/>
+                  </p>
                   {% else %}
                   <div class="card-text">
                       You have no tasks.

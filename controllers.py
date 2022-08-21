@@ -24,16 +24,6 @@ matplotlib.rcParams['font.size'] = 16
 def user_loader(user_id):
     return db.session.query(User).get(user_id)
 
-@login_manager.request_loader
-def user_loader(request):
-    try:
-        return db.session.query(User).get(request.json['username'])
-    except:
-        try:
-            return db.session.query(User).get(current_user.username)
-        except:
-            return None
-
 @app.route('/')
 def home():
     return render_template('pages/home.html', today=datetime.date(datetime.now()), color_code="BE8C63")
@@ -65,11 +55,11 @@ def login():
 
     if form.validate_on_submit():
 
-        user = User.query.get(form.username.data)
+        user = user_loader(form.username.data)
         login_user(user)
         return redirect(url_for("home"))
 
-    return render_template('forms/login.html', form=form, color_code="9A616D", photo_no=1)
+    return render_template('forms/login.html', form=form, color_code="D3CEDF", photo_no=5)
 
 
 @app.route('/add/list', methods=['GET', 'POST'])
@@ -192,7 +182,7 @@ def update_task(list_id, task_title):
 
         return redirect(url_for('home'))
 
-    return render_template('forms/task.html', form=form, list=list, task=task, color_code="FCF5DC", photo_no=5)
+    return render_template('forms/task.html', form=form, list=list, task=task, color_code="FCF5DC", photo_no=1)
 
 
 @app.route('/delete/task/<list_id>/<task_title>')
@@ -215,9 +205,12 @@ def summary():
     data = dict()
     pies = dict()
     bars = dict()
+    gantts = dict()
 
     for list in current_user.lists:
+        data[list.id] = {'labels':[], 'complete':[], 'incomplete':[], 'passed':[]}
         dates = dict()
+
         for task in sorted(list.tasks, key=lambda t: t.deadline):
             date = task.deadline.strftime('%d-%b')
             try:
@@ -232,7 +225,32 @@ def summary():
                 else:
                     dates[date]['passed'] += 1
 
-        data[list.id] = {'labels':[], 'complete':[], 'incomplete':[], 'passed':[]}
+        all_dates = [i.strftime('%d-%b') for i in sorted(remove_duplicates([task.created.date() for task in list.tasks] + [task.deadline for task in list.tasks]))]
+
+        task_names = []
+        task_widths = []
+        task_lefts = []
+        task_colours = []
+
+        print(all_dates)
+        for task in sorted(list.tasks, key=lambda t:t.created):
+            date_created = task.created.strftime('%d-%b')
+            date_deadline = task.deadline.strftime('%d-%b')
+            left = all_dates.index(date_created)
+            days_between = all_dates.index(date_deadline) - left
+
+            if days_between>0:
+                task_names.append(task.title)
+                task_widths.append(days_between)
+                task_lefts.append(left)
+
+            if task.status:
+                task_colours.append(colors[0])
+            elif task.deadline >= datetime.date(datetime.now()):
+                task_colours.append(colors[1])
+            else:
+                task_colours.append(colors[2])
+
         for i in dates:
             data[list.id]['labels'].append(i)
             data[list.id]['complete'].append(dates[i]['complete'])
@@ -241,7 +259,7 @@ def summary():
 
         data[list.id]['pie'] = [sum(data[list.id][i]) for i in ['complete', 'incomplete', 'passed']]
 
-        pie_fig = Figure()
+        pie_fig = Figure(figsize=(11, 11))
         pie_ax = pie_fig.subplots()
         pie_ax.pie(data[list.id]['pie'], colors=colors, explode=(0.05, 0.05, 0.05))
         pie_buf = BytesIO()
@@ -249,7 +267,7 @@ def summary():
         pie = base64.b64encode(pie_buf.getbuffer()).decode("ascii")
         pies[list.id] = {'pie':pie, 'data':data[list.id]['pie']}
 
-        bar_fig = Figure()
+        bar_fig = Figure(figsize=(7, 7))
         bar_ax = bar_fig.subplots()
         bar_ax.bar(data[list.id]['labels'], data[list.id]['incomplete'], color=colors[1])
         bar_ax.bar(data[list.id]['labels'], data[list.id]['passed'], color=colors[2], bottom=data[list.id]['incomplete'])
@@ -261,7 +279,17 @@ def summary():
         bar = base64.b64encode(bar_buf.getbuffer()).decode("ascii")
         bars[list.id] = bar
 
-    return render_template('pages/summary.html', pies=pies, bars=bars, color_code="8BA1AD")
+        gantt_fig = Figure(figsize=(10, 10))
+        gantt_ax = gantt_fig.subplots()
+        gantt_ax.barh(task_names, task_widths, left=task_lefts, height=0.7, color=colors)
+        gantt_ax.set_xticks(range(len(all_dates)), all_dates, rotation ='vertical')
+
+        gantt_buf = BytesIO()
+        gantt_fig.savefig(gantt_buf, format="png", transparent=True)
+        gantt = base64.b64encode(gantt_buf.getbuffer()).decode("ascii")
+        gantts[list.id] = gantt
+
+    return render_template('pages/summary.html', pies=pies, bars=bars, gantts=gantts, color_code="8BA1AD")
 
 
 @app.route('/stats/list/<list_id>', methods=['GET'])
@@ -330,3 +358,5 @@ def internal_error(error):
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('errors/404.html'), 404
+
+remove_duplicates = lambda i: list(set(i))
