@@ -2,33 +2,29 @@
 {% block title %}About{% endblock %}
 {% block color %}{{ color_code }}{% endblock %}
 {% block content %}
+
 <br><br>
 <body class="stackedit">
-  <div class="stackedit__html"><h1 id="simple-kanban-app">Simple Kanban App</h1>
-      <br><br>
+  <br><br><div class="stackedit__html"><h1 id="simple-kanban-app">Simple Kanban App</h1><br><br>
 <p><strong>Kanban</strong> is a simple task-scheduling methodology formulated by Taiichi Ohno from Toyota, Japan. It entails partitioning a board into lists, and each list is populated with it’s appropriate tasks.</p>
 <p>This repository is my work in creating a simple and functional Kanban application. It is my final project submission for the MAD-I project, a part of IITM’s online Programming diploma.</p>
-<br><h2 id="technologies-used">Technologies used</h2><br>
+<br><br><h2 id="technologies-used">Technologies used</h2><br><br>
 <ul>
-<li><strong>HTML, CSS, Javascript, Bootstrap, jinja2</strong> - Client-side presentation tools
-<ul>
-<li><strong>Popper.js</strong>, <strong>jQuery.js</strong>, <strong>Chart.js</strong></li>
-</ul><br>
-</li>
+<li><strong>HTML, CSS, Javascript, Bootstrap, jinja2</strong> - Client-side presentation tools</li>
 <li><strong>Python, Flask</strong> - Back-end processing and web routing
 <ul>
 <li><strong>Flask SQLAlchemy</strong> - Database management module</li>
 <li><strong>Flask-Login, Hashlib</strong> - Frameworks to facilitate login processes</li>
 <li><strong>Flask-WTF, WTForms</strong> - Form declaration and input handling</li>
 <li><strong>Flask-RESTful</strong> - API declaration, routing and handling</li>
-<li><strong>Pandas, io.BytesIO</strong> - To generate excel spreadsheet of data on the fly for further analysis</li>
+<li><strong>Pandas, Matplotlib, io.BytesIO</strong> - To generate excel spreadsheet of data on the fly for further analysis</li>
 </ul>
 </li>
-</ul><br>
-<h2 id="db-schema-design">DB Schema Design</h2><br><br>
-<p><img src="https://i.ibb.co/pZSLpvP/dbschema-light.png" alt="DB Schema"></p><br>
-<h2 id="api-design">API Design</h2><br>
-<p>Implemented using <strong>Flask-RESTful</strong>. A total of 5 resource classes were used. The following table describes the endpoints:</p>
+</ul>
+<br><br><h2 id="db-schema-design">DB Schema Design</h2><br><br>
+<p><img src="static/dbschema-light.png" alt="DB Schema"></p>
+<br><br><h2 id="api-design">API Design</h2><br><br>
+<p>Implemented using <strong>Flask-RESTful</strong>. A total of 4 resource classes were used. The following table describes the endpoints:</p>
 
 <table>
 <thead>
@@ -43,10 +39,6 @@
 <td>Login user using <strong>post</strong> request</td>
 </tr>
 <tr>
-<td><strong>/api/logout</strong></td>
-<td>Logout user using <strong>get</strong> request</td>
-</tr>
-<tr>
 <td><strong>/api/list</strong></td>
 <td><strong>CRUD</strong> operations on lists</td>
 </tr>
@@ -59,7 +51,8 @@
 <td><strong>get</strong> descriptive stats on tasks of current user’s lists</td>
 </tr>
 </tbody>
-</table><br><h2 id="architectures-and-features">Architectures and features</h2><br>
+</table>
+<br><br><h2 id="architectures-and-features">Architectures and features</h2><br><br>
 <pre><code>|───static
 │   ├───ico / App icons
 │   └───wallpapers / Wallpapers used in forms
@@ -79,7 +72,7 @@
 </li>
 <li><strong>Website</strong> components:
 <ul>
-<li><strong>api.py</strong> - API Resource definitions</li>
+<li><strong>api.py</strong>, <strong>api_token_auth.py</strong> - API Authentication and Resource definitions</li>
 <li><strong>controllers.py</strong> - Controllers and error handlers</li>
 <li><strong>forms.py</strong> - Form Class definitions and input validators</li>
 </ul>
@@ -93,15 +86,16 @@
 </ul>
 <p><strong>Additional Features</strong>:</p>
 <ul>
-<li><strong>Popper.js</strong> used to generate useful tooltips on mouse hover</li>
+<li><strong>Popper.js</strong> used to display useful tooltips on mouse hover.</li>
 <li><strong>jQuery.js</strong> scripts dynamically generated using <strong>jinja2</strong> to do the following:
 <ul>
 <li>Makes a “delete-modal” visible on click to confirm deletion</li>
-<li>In case of validation error on user input, HTML elements are edited to show error message originating from flask app</li>
+<li>In case of validation error on user input, HTML elements are edited to show error message originating from flask application.</li>
 <li>Background color change triggered on a button click</li>
 </ul>
 </li>
-<li><strong>Chart.js</strong> scripts also generated using <strong>jinja2</strong>. Used to create interactive bar and doughnut charts.</li>
+<li>Generates .xlsx spreadsheet about a user’s lists / a list’s tasks on the fly for analysis in MS Excel/Google Sheets (look out for green buttons).</li>
+<li>Token-based user-authentication for API to enable CRUD operations on application components by a developer.</li>
 </ul>
 </div>
 </body>
