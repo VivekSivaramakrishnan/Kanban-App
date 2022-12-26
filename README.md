@@ -15,7 +15,7 @@ This repository is my work in creating a simple and functional Kanban applicatio
 	- **Pandas, Matplotlib, io.BytesIO** - To generate excel spreadsheet of data on the fly for further analysis
 
 ## DB Schema Design
-![DB Schema](static\\dbschema-light.png)
+![DB Schema](static/dbschema-light.png)
 
 ## API Design
 Implemented using **Flask-RESTful**. A total of 4 resource classes were used. The following table describes the endpoints:
