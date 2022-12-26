@@ -248,7 +248,7 @@ class StatsAPI(Resource):
 
         output.seek(0)
 
-        return send_file(output, mimetype="application/msexcel", attachment_filename=f"{current_user.username}_list_stats.xlsx", as_attachment=True)
+        return send_file(output, mimetype="application/msexcel", download_name=f"{current_user.username}_list_stats.xlsx", as_attachment=True)
 
 
 api.add_resource(LoginAPI, '/api/login')
