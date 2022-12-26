@@ -3,6 +3,8 @@
 
 This repository is my work in creating a simple and functional Kanban application. It is my final project submission for the MAD-I project, a part of IITM's online Programming diploma.
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Aqag_qPaK4E/0.jpg)](http://www.youtube.com/watch?v=Aqag_qPaK4E "Demonstration for Simple Kanban")
+
 ## Technologies used
 - **HTML, CSS, Javascript, Bootstrap, jinja2** - Client-side presentation tools
 - **Python, Flask** - Back-end processing and web routing
