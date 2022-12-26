@@ -208,86 +208,88 @@ def summary():
     gantts = dict()
 
     for list in current_user.lists:
-        data[list.id] = {'labels':[], 'complete':[], 'incomplete':[], 'passed':[]}
-        dates = dict()
+        if list.tasks:
+            
+            data[list.id] = {'labels':[], 'complete':[], 'incomplete':[], 'passed':[]}
+            dates = dict()
 
-        for task in sorted(list.tasks, key=lambda t: t.deadline):
-            date = task.deadline.strftime('%d-%b')
-            try:
-                dates[date]
-            except:
-                dates[date] = {'complete':0, 'incomplete':0, 'passed':0}
-            finally:
+            for task in sorted(list.tasks, key=lambda t: t.deadline):
+                date = task.deadline.strftime('%d-%b')
+                try:
+                    dates[date]
+                except:
+                    dates[date] = {'complete':0, 'incomplete':0, 'passed':0}
+                finally:
+                    if task.status:
+                        dates[date]['complete'] += 1
+                    elif task.deadline >= datetime.date(datetime.now()):
+                        dates[date]['incomplete'] += 1
+                    else:
+                        dates[date]['passed'] += 1
+
+            all_dates = [i.strftime('%d-%b') for i in sorted(remove_duplicates([task.created.date() for task in list.tasks] + [task.deadline for task in list.tasks]))]
+
+            task_names = []
+            task_widths = []
+            task_lefts = []
+            task_colours = []
+
+            print(all_dates)
+            for task in sorted(list.tasks, key=lambda t:t.created):
+                date_created = task.created.strftime('%d-%b')
+                date_deadline = task.deadline.strftime('%d-%b')
+                left = all_dates.index(date_created)
+                days_between = all_dates.index(date_deadline) - left
+
+                if days_between>0:
+                    task_names.append(task.title)
+                    task_widths.append(days_between)
+                    task_lefts.append(left)
+
                 if task.status:
-                    dates[date]['complete'] += 1
+                    task_colours.append(colors[0])
                 elif task.deadline >= datetime.date(datetime.now()):
-                    dates[date]['incomplete'] += 1
+                    task_colours.append(colors[1])
                 else:
-                    dates[date]['passed'] += 1
+                    task_colours.append(colors[2])
 
-        all_dates = [i.strftime('%d-%b') for i in sorted(remove_duplicates([task.created.date() for task in list.tasks] + [task.deadline for task in list.tasks]))]
+            for i in dates:
+                data[list.id]['labels'].append(i)
+                data[list.id]['complete'].append(dates[i]['complete'])
+                data[list.id]['incomplete'].append(dates[i]['incomplete'])
+                data[list.id]['passed'].append(dates[i]['passed'])
 
-        task_names = []
-        task_widths = []
-        task_lefts = []
-        task_colours = []
+            data[list.id]['pie'] = [sum(data[list.id][i]) for i in ['complete', 'incomplete', 'passed']]
 
-        print(all_dates)
-        for task in sorted(list.tasks, key=lambda t:t.created):
-            date_created = task.created.strftime('%d-%b')
-            date_deadline = task.deadline.strftime('%d-%b')
-            left = all_dates.index(date_created)
-            days_between = all_dates.index(date_deadline) - left
+            pie_fig = Figure(figsize=(11, 11))
+            pie_ax = pie_fig.subplots()
+            pie_ax.pie(data[list.id]['pie'], colors=colors, explode=(0.05, 0.05, 0.05))
+            pie_buf = BytesIO()
+            pie_fig.savefig(pie_buf, format="png", transparent=True)
+            pie = base64.b64encode(pie_buf.getbuffer()).decode("ascii")
+            pies[list.id] = {'pie':pie, 'data':data[list.id]['pie']}
 
-            if days_between>0:
-                task_names.append(task.title)
-                task_widths.append(days_between)
-                task_lefts.append(left)
+            bar_fig = Figure(figsize=(7, 7))
+            bar_ax = bar_fig.subplots()
+            bar_ax.bar(data[list.id]['labels'], data[list.id]['incomplete'], color=colors[1])
+            bar_ax.bar(data[list.id]['labels'], data[list.id]['passed'], color=colors[2], bottom=data[list.id]['incomplete'])
+            bar_ax.bar(data[list.id]['labels'], data[list.id]['complete'], color=colors[0], bottom=[i+j for i,j in zip(data[list.id]['passed'], data[list.id]['incomplete'])])
+            bar_ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+            bar_ax.set_xlabel('Deadline')
+            bar_buf = BytesIO()
+            bar_fig.savefig(bar_buf, format="png", transparent=True)
+            bar = base64.b64encode(bar_buf.getbuffer()).decode("ascii")
+            bars[list.id] = bar
 
-            if task.status:
-                task_colours.append(colors[0])
-            elif task.deadline >= datetime.date(datetime.now()):
-                task_colours.append(colors[1])
-            else:
-                task_colours.append(colors[2])
+            gantt_fig = Figure(figsize=(10, 10))
+            gantt_ax = gantt_fig.subplots()
+            gantt_ax.barh(task_names, task_widths, left=task_lefts, height=0.7, color=colors)
+            gantt_ax.set_xticks(range(len(all_dates)), all_dates, rotation ='vertical')
 
-        for i in dates:
-            data[list.id]['labels'].append(i)
-            data[list.id]['complete'].append(dates[i]['complete'])
-            data[list.id]['incomplete'].append(dates[i]['incomplete'])
-            data[list.id]['passed'].append(dates[i]['passed'])
-
-        data[list.id]['pie'] = [sum(data[list.id][i]) for i in ['complete', 'incomplete', 'passed']]
-
-        pie_fig = Figure(figsize=(11, 11))
-        pie_ax = pie_fig.subplots()
-        pie_ax.pie(data[list.id]['pie'], colors=colors, explode=(0.05, 0.05, 0.05))
-        pie_buf = BytesIO()
-        pie_fig.savefig(pie_buf, format="png", transparent=True)
-        pie = base64.b64encode(pie_buf.getbuffer()).decode("ascii")
-        pies[list.id] = {'pie':pie, 'data':data[list.id]['pie']}
-
-        bar_fig = Figure(figsize=(7, 7))
-        bar_ax = bar_fig.subplots()
-        bar_ax.bar(data[list.id]['labels'], data[list.id]['incomplete'], color=colors[1])
-        bar_ax.bar(data[list.id]['labels'], data[list.id]['passed'], color=colors[2], bottom=data[list.id]['incomplete'])
-        bar_ax.bar(data[list.id]['labels'], data[list.id]['complete'], color=colors[0], bottom=[i+j for i,j in zip(data[list.id]['passed'], data[list.id]['incomplete'])])
-        bar_ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        bar_ax.set_xlabel('Deadline')
-        bar_buf = BytesIO()
-        bar_fig.savefig(bar_buf, format="png", transparent=True)
-        bar = base64.b64encode(bar_buf.getbuffer()).decode("ascii")
-        bars[list.id] = bar
-
-        gantt_fig = Figure(figsize=(10, 10))
-        gantt_ax = gantt_fig.subplots()
-        gantt_ax.barh(task_names, task_widths, left=task_lefts, height=0.7, color=colors)
-        gantt_ax.set_xticks(range(len(all_dates)), all_dates, rotation ='vertical')
-
-        gantt_buf = BytesIO()
-        gantt_fig.savefig(gantt_buf, format="png", transparent=True)
-        gantt = base64.b64encode(gantt_buf.getbuffer()).decode("ascii")
-        gantts[list.id] = gantt
+            gantt_buf = BytesIO()
+            gantt_fig.savefig(gantt_buf, format="png", transparent=True)
+            gantt = base64.b64encode(gantt_buf.getbuffer()).decode("ascii")
+            gantts[list.id] = gantt
 
     return render_template('pages/summary.html', pies=pies, bars=bars, gantts=gantts, color_code="8BA1AD")
 

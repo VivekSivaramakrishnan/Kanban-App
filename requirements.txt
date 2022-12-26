@@ -2,6 +2,8 @@ Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
 Flask-RESTful
+Flask-CORS
 pandas
 WTForms
 pyJWT
+matplotlib
